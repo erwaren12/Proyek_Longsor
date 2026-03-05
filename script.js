@@ -35,33 +35,22 @@ function putarAlarmBahaya() {
     synth.speak(utterThis);
 }
 
-// FUNGSI INIT MAP (DIUBAH MENJADI INTERAKTIF)
+// FUNGSI INIT MAP
 function initMap() {
-    // Gunakan zoomControl agar user bisa zoom in/out peta
     map = L.map('map', {zoomControl: true, attributionControl: false}).setView([sensorLat, sensorLng], 14); 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     
     circleRadius = L.circle([sensorLat, sensorLng], { color: '#00ff66', fillColor: '#00ff66', fillOpacity: 0.2, radius: 400 }).addTo(map);
     marker = L.circleMarker([sensorLat, sensorLng], { radius: 6, fillColor: "#fff", color: "#000", weight: 1, opacity: 1, fillOpacity: 0.8 }).addTo(map);
 
-    // EVENT LISTENER: Saat Peta Di-klik
     map.on('click', function(e) {
-        // Update variabel global koordinat
         sensorLat = e.latlng.lat;
         sensorLng = e.latlng.lng;
-
-        // Pindahkan Marker dan Radius Circle di Peta
         marker.setLatLng([sensorLat, sensorLng]);
         circleRadius.setLatLng([sensorLat, sensorLng]);
-
-        // Update teks di Layar HUD (Pojok Kanan Atas)
         document.getElementById('teksLat').innerText = sensorLat.toFixed(4);
         document.getElementById('teksLng').innerText = sensorLng.toFixed(4);
-
-        // Tampilkan loading sebentar di cuaca
         document.getElementById('valCuaca').innerText = "MENCARI DATA...";
-
-        // Tembak ulang satelit cuaca untuk lokasi yang baru di-klik
         sinkronisasiCuaca();
     });
 }
@@ -88,9 +77,7 @@ function initChart() {
     });
 }
 
-// FUNGSI TARIK DATA CUACA (DINAMIS SESUAI KOORDINAT)
 async function sinkronisasiCuaca() {
-    // URL sekarang menggunakan variabel sensorLat dan sensorLng
     let urlCuaca = `https://api.open-meteo.com/v1/forecast?latitude=${sensorLat}&longitude=${sensorLng}&current=weather_code`;
     
     try {
@@ -113,8 +100,6 @@ async function sinkronisasiCuaca() {
         }
 
         document.getElementById('valCuaca').innerText = statusCuacaTeks;
-        
-        // Minta update dashboard ThingSpeak agar bar risiko otomatis terkalkulasi ulang
         sinkronisasiSatelit();
 
     } catch (error) {
@@ -151,6 +136,22 @@ async function sinkronisasiSatelit() {
         let valAir = parseInt(terkini.field2) || 0;
         let statusKode = parseInt(terkini.field3) || 0;
 
+        // LOGIKA BARU: SENSOR GETARAN (FIELD 4)
+        let valGetaran = parseInt(terkini.field4) || 0; 
+        let teksGetaran = document.getElementById('valGetaran');
+        let penaltiGetaran = 0;
+
+        if (valGetaran === 1) {
+            teksGetaran.innerText = "TERDETEKSI!";
+            teksGetaran.style.color = "var(--neon-red)";
+            teksGetaran.style.textShadow = "0 0 10px var(--neon-red)";
+            penaltiGetaran = 40; // Penalti risiko jika ada guncangan
+        } else {
+            teksGetaran.innerText = "STABIL";
+            teksGetaran.style.color = "#fff";
+            teksGetaran.style.textShadow = "0 0 8px #fff";
+        }
+
         document.getElementById('valKemiringan').innerText = valMiring.toFixed(1) + "°";
         document.getElementById('valKelembaban').innerText = valAir + "%";
         document.getElementById('waktuServer').innerText = new Date().toLocaleTimeString('id-ID');
@@ -159,7 +160,7 @@ async function sinkronisasiSatelit() {
         if (batasDinamis < 20) batasDinamis = 20;
         
         let risikoDasar = (valAir / batasDinamis) * 100;
-        let persentaseRisiko = risikoDasar + penaltiRisikoCuaca; 
+        let persentaseRisiko = risikoDasar + penaltiRisikoCuaca + penaltiGetaran; 
         
         if(persentaseRisiko > 100) persentaseRisiko = 100;
         
@@ -167,11 +168,13 @@ async function sinkronisasiSatelit() {
         let barRisiko = document.getElementById('barRisiko');
         barRisiko.style.width = persentaseRisiko + "%";
 
+        // UPDATE TABEL DENGAN KOLOM VIBRASI
         [...feeds].reverse().forEach(feed => {
             let jam = new Date(feed.created_at).toLocaleTimeString('id-ID');
-            let rsk = ((parseFloat(feed.field2) / (90 - (parseFloat(feed.field1)*1.2)))*100) + penaltiRisikoCuaca;
+            let statusGetar = (parseInt(feed.field4) === 1) ? "<span style='color:#ff003c'>GETAR</span>" : "AMAN";
+            let rsk = ((parseFloat(feed.field2) / (90 - (parseFloat(feed.field1)*1.2)))*100) + penaltiRisikoCuaca + (parseInt(feed.field4) === 1 ? 40 : 0);
             let rskStr = rsk > 100 ? 100 : rsk.toFixed(1);
-            htmlTabel += `<tr><td>${jam}</td><td>${parseFloat(feed.field1).toFixed(1)}°</td><td>${parseFloat(feed.field2).toFixed(0)}%</td><td style="color:${rsk>85?'#ff003c':'#00f3ff'}">${rskStr}%</td></tr>`;
+            htmlTabel += `<tr><td>${jam}</td><td>${parseFloat(feed.field1).toFixed(1)}°</td><td>${parseFloat(feed.field2).toFixed(0)}%</td><td>${statusGetar}</td><td style="color:${rsk>85?'#ff003c':'#00f3ff'}">${rskStr}%</td></tr>`;
         });
         document.getElementById('tabelData').innerHTML = htmlTabel;
 
@@ -212,10 +215,8 @@ async function sinkronisasiSatelit() {
 window.onload = function() {
     initMap();
     initChart();
-    
     sinkronisasiCuaca();
     setInterval(sinkronisasiCuaca, 300000); 
-    
     sinkronisasiSatelit();
     setInterval(sinkronisasiSatelit, 15000); 
 };
