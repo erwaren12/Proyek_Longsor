@@ -20,7 +20,7 @@
             <p>NODE: ESP32-WOKWI | SATELIT SYNC: AKTIF | <span id="waktuServer">Menghubungkan...</span></p>
         </div>
         <div class="koordinat-box">
-            OPR: <span class="op-name">CP ENJOYER</span> (UID: 21)<br>
+            OPR: <span class="op-name">TOHIRLELE</span> (UID: 21)<br>
             LAT: <span id="teksLat" style="color:#fff;">-7.6145</span> | LONG: <span id="teksLng" style="color:#fff;">112.6012</span><br>
             <span style="color: var(--neon-green); font-size: 0.8em;">● METEO-SAT LINKED</span>
         </div>
@@ -28,7 +28,6 @@
 
     <div class="layout-grid">
         <div class="kolom-kiri">
-            
             <button class="btn-audio" id="btnSuara" onclick="aktifkanAudio()">🔈 AKTIFKAN SISTEM SUARA (KLIK DISINI)</button>
 
             <div class="panel" style="margin-bottom: 20px;">
@@ -43,28 +42,16 @@
                     <div class="label">SATURASI AIR TANAH</div>
                     <div class="value" id="valKelembaban">0%</div>
                 </div>
-                <div class="panel" style="margin-bottom: 20px;">
-                    <div class="panel-title">STATUS PROTOKOL MITIGASI</div>
-                    <div class="status-hero" id="boxStatusBesar">SYS. AMAN</div>
-                    
-                    <div class="data-box">
-                        <div class="label">KEMIRINGAN LERENG</div>
-                        <div class="value" id="valKemiringan">0.0°</div>
-                    </div>
-                    <div class="data-box">
-                        <div class="label">SATURASI AIR TANAH</div>
-                        <div class="value" id="valKelembaban">0%</div>
-                    </div>
                 
-                    <div class="data-box" style="border-left-color: var(--neon-red);">
-                        <div class="label" style="color: var(--neon-red);">VIBRASI (SW-420)</div>
-                        <div class="value" id="valGetaran">STABIL</div>
-                    </div>
-                
-                    <div class="data-box" style="border-left-color: var(--neon-yellow);">
-                        <div class="label" style="color: var(--neon-yellow);">CUACA SATELIT (LIVE)</div>
-                        <div class="value" id="valCuaca" style="font-size: 1.2em;">MENYINKRONKAN...</div>
-                    </div>
+                <div class="data-box" style="border-left-color: var(--neon-red);">
+                    <div class="label" style="color: var(--neon-red);">VIBRASI (SW-420)</div>
+                    <div class="value" id="valGetaran">STABIL</div>
+                </div>
+
+                <div class="data-box" style="border-left-color: var(--neon-yellow);">
+                    <div class="label" style="color: var(--neon-yellow);">CUACA SATELIT (LIVE)</div>
+                    <div class="value" id="valCuaca" style="font-size: 1.2em;">MENYINKRONKAN...</div>
+                </div>
 
                 <div class="risk-container">
                     <div class="risk-label">
@@ -108,6 +95,7 @@
                                 <th>TIMESTAMP</th>
                                 <th>TILT (°)</th>
                                 <th>MOISTURE (%)</th>
+                                <th>VIBRATION</th>
                                 <th>RISK INDEX</th>
                             </tr>
                         </thead>
